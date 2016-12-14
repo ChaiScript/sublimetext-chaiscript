@@ -1,0 +1,6 @@
+package-metadata.json
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.pyc
+*.sublime-workspace

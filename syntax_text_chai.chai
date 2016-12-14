@@ -1,0 +1,187 @@
+// SYNTAX TEST "ChaiScript.sublime-syntax"
+#!/usr/bin/env chai
+// <- comment.line.shebang.chai
+
+// --- VARIABLES --
+
+var i;
+auto j;
+var l := k;
+//    ^^ keyword.operator.assignment.chai
+auto &m = k;
+//   ^ keyword.operator.chai
+global g = "This is a global";
+// <- storage.type.chai
+var x = true;
+// <- storage.type.chai
+auto z = false;
+// <- storage.type.chai
+
+var misc = [1, 2.0f, 3u, 4ll, "16", `+`];
+//         ^ punctuation.definition.brackets.chai
+var map = ["a":1, "b":2];
+
+// --- IF ---
+
+if (5 > 2)
+// <- keyword.control.conditional.chai
+{
+  print("Yup, 5 > 2");
+//                 ^ punctuation.definition.string.end.chai
+}
+else if (true || false)
+// <- keyword.control.conditional.chai
+{
+  foo()
+}
+else
+// ^ keyword.control.conditional.chai
+{
+  bar()
+}
+
+// --- LOOPS ---
+
+while (x)
+//  ^  keyword.control.loop.chai
+{
+  print("x was true")
+  x = false;
+//       ^ constant.language.boolean.false.chai
+}
+
+for (var i = 1; i < 10; ++i)
+{
+// <- meta.block.chai
+  z = true;
+  print(i);
+//      ^  meta.function-call.chai
+}
+
+for (x : [1,2,3]) { print(i); }
+
+// --- FUNCTIONS --
+
+def myFunc(x) { print(x); }
+//^  meta.function.declaration.chai
+
+def myFunc(x) : x > 2 && x < 5 {
+//  ^  meta.function.declaration.chai
+  print(to_string(x) + " is between 2 and 5")
+//                   ^  keyword.operator.arithmetic.chai
+}
+
+def myFunc(x, y) : x >= 5 {
+  print(to_string(x) + " is greater than or equal to 5")
+//^^^^^  support.function.chai
+}
+
+myFunc(3)
+// <- variable.function.chai
+
+print("${3 + 5} is 8");
+//    ^ string.quoted.double.chai
+
+var value = eval("4 + 2 + 12");
+//          ^^^^  support.function.chai
+
+
+var plus = `+`;
+//         ^^^  constant.character.chai
+var minus = `-`;
+var mult = `*`;
+var div = `/`;
+
+print(plus("a", "b")) // prints "ab"
+print(plus(1 , 3)) // prints "4"
+
+var my_print = print
+my_print(10)
+
+
+var my_fun = fun(x) { return x + 2; }
+//                    ^^^^^^ keyword.control
+my_fun(5)
+
+my_print(my_fun.get_arity())
+//              ^^^^^^^^^ meta.function-call.method.chai
+my_print(`+`.get_arity())
+
+var print_arg_types = fun(f)
+//                    ^^^ storage.type.chai
+{
+  var join_str = ", "
+  print("${f.get_param_types()[0].name();} (${f.get_param_types().drop(1).map(name).join(join_str)})")
+}
+
+`+`.get_contained_functions().for_each(print_arg_types)
+
+try {
+  eval("BLARG")
+} catch (e) {
+  print("Error while processing eval statement")
+}
+
+try {
+  throw(5.2)
+} catch(e) : is_type(e, "int") {
+//           ^^^^^^^  support.function.chai
+  print("Int: ${e}");
+
+} catch(e) : is_type(e, "double") {
+  print("Double: ${e}");
+}
+
+// --- CLASS ---
+
+class MyClass
+// <- storage.type.class.chai
+{
+  var data
+//^^^  meta.class.chai meta.block.chai storage.type.chai
+
+  def MyClass(x)
+  {
+    this.set_explicit(true);
+//  ^^^^  meta.class.chai keyword.language.chai
+    this.data = x
+  }
+
+  def getStuff(y)
+  {
+    return this.data + y
+  }
+
+  def getName()
+  {
+    return __CLASS__;
+  }
+}
+
+var obj = MyClass(10)
+obj.getStuff(15)
+
+def string::isStringLong()
+{
+  return this.size() > 10;
+}
+
+print("Hello".isStringLong())
+print("Hello World".isStringLong())
+
+def MyClass::getMoreStuff(d)
+{
+  return this.data * d
+}
+
+print(obj.getMoreStuff(10))
+
+attr MyType::value;
+def MyType::MyType() { this.value = "a"; }
+def MyType::get_value() { "Value Is: " + this.value; }
+
+// --- BUILT INS ---
+
+print("current line: " + __LINE__);
+print("current file: " + __FILE__);
+//                       ^  support.constant.chai

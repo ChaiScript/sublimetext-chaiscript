@@ -1,0 +1,473 @@
+%YAML 1.2
+---
+# Derived from the C++/JavaScript package of Sublime Text 3
+name: ChaiScript
+file_extensions:
+  - chai
+first_line_match: ^#!/.*\b(chai)$\n?
+scope: source.chai
+variables:
+  identifier: '\b[[:alpha:]_][[:alnum:]_]*\b'
+  func_lookahead: '\s*\b(fun\s+)?def\b'
+
+contexts:
+  main:
+    - include: comments-top-level
+    - include: statements
+
+  comments-top-level:
+    - match: ^(#!).*$\n?
+      scope: comment.line.shebang.chai
+      captures:
+        1: punctuation.definition.comment.chai
+
+  statements:
+    - include: conditional
+    - match: '\{(?!\{)'
+      scope: punctuation.definition.block.chai
+      push:
+        - meta_scope: meta.block.chai
+        - match: '\}'
+          scope: punctuation.definition.block.chai
+          pop: true
+        - include: statements
+    - include: expressions
+
+  conditional:
+    - match: \bfor\b
+      scope: keyword.control.loop.chai
+      push:
+        - meta_scope: meta.for.chai
+        - include: parens-block-scope
+
+    - match: \bwhile\b
+      scope: keyword.control.loop.chai
+      push:
+        - meta_scope: meta.while.chai
+        - include: parens-block-scope
+
+    - match: \b(else\s+if|if)\b
+      scope: keyword.control.conditional.chai
+      push:
+        - meta_scope: meta.conditional.chai
+        - include: parens-block-scope
+
+    - match: \belse\b
+      scope: keyword.control.conditional.chai
+      push:
+        - meta_scope: meta.conditional.chai
+        - include: block-scope
+
+    - match: \btry\b
+      scope: keyword.control.trycatch.chai
+      push:
+        - meta_scope: meta.try.chai
+        - include: block-scope
+
+    - match: \bfinally\b
+      scope: keyword.control.trycatch.chai
+      push:
+        - meta_scope: meta.finally.chai
+        - include: block-scope
+
+    - match: \bcatch\b
+      scope: keyword.control.trycatch.chai
+      push:
+        - meta_scope: meta.catch.chai
+        - include: parens-block-scope
+
+  parens-block-scope:
+    - match: '\('
+      scope: punctuation.definition.group.chai
+      push:
+        - meta_scope: meta.group.chai
+        - match: '\)'
+          scope: punctuation.definition.group.chai
+          pop: true
+        - include: expressions
+    - include: block-scope
+
+  block-scope:
+    - include: comments
+    - match: '\}'
+      scope: meta.block.chai punctuation.definition.block.chai
+      pop: true
+    - match: '\{'
+      scope: punctuation.definition.block.chai
+      push:
+        - meta_scope: meta.block.chai
+        - match: '(?=\})'
+          pop: true
+        - include: statements
+    - match: '(?=\S)'
+      pop: true
+
+  expressions:
+    - include: brackets
+    - include: class
+    - include: comments
+    - include: constants
+    - include: constructor
+    - include: context-values
+    - include: function-operator
+    - include: keywords
+    - include: literal-call
+    - include: literal-number
+    - include: literal-string
+    - include: named-function
+    - include: operators
+
+  after-identifier:
+    - match: '/(?=[^/*])'
+      scope: keyword.operator.arithmetic.chai
+    - match: '(?=[\S\n])'
+      pop: true
+
+  operators:
+    - match: \+\=|-\=|\*\=|/\=|%\=|&\=|\|\=|\^\=|>>\=|<<\=
+      scope: keyword.operator.assignment.augmented.chai
+    - match: \+|\-|/|%|<<|>>|&&|\|\||\||\^|~|!
+      scope: keyword.operator.arithmetic.chai
+    - match: <\=|>\=|\=\=|<|>|\!\=
+      scope: keyword.operator.comparison.chai
+    - match: \*|&
+      scope: keyword.operator.chai
+    - match: \=
+      scope: keyword.operator.assignment.chai
+    - match: \:\=
+      scope: keyword.operator.assignment.chai
+
+  comments:
+    - match: /\*\*(?!/)
+      scope: punctuation.definition.comment.chai
+      push:
+        - meta_scope: comment.block.documentation.chai
+        - match: \*/
+          scope: punctuation.definition.comment.chai
+          pop: true
+    - match: /\*
+      scope: punctuation.definition.comment.chai
+      push:
+        - meta_scope: comment.block.chai
+        - match: \*/
+          scope: punctuation.definition.comment.chai
+          pop: true
+    - match: //
+      scope: punctuation.definition.comment.chai
+      push:
+        - meta_scope: comment.line.double-slash.chai
+        - match: \n
+          pop: true
+
+  function-operator:
+    - match: '\`(\+|\*|\-|\/)\`'
+      scope: constant.character.chai
+
+  literal-string:
+    - match: '"'
+      captures:
+        0: punctuation.definition.string.begin.chai
+      push:
+        - meta_scope: string.quoted.double.chai
+        - match: (")|(\n)
+          captures:
+            1: punctuation.definition.string.end.chai
+            2: invalid.illegal.newline.chai
+          pop: true
+        - include: string-content
+
+  string-content:
+    - match: \\\s*\n
+      scope: constant.character.escape.newline.chai
+    - match: '\\(x[\da-fA-F][\da-fA-F]|u[\da-fA-F][\da-fA-F][\da-fA-F][\da-fA-F]|.)'
+      scope: constant.character.escape.chai
+
+  class:
+    - match: \bclass\b
+      scope: storage.type.class.chai
+      push:
+        - meta_scope: meta.class.chai
+        - match: '\{'
+          scope: punctuation.definition.block.chai
+          set: class-body
+        - match: '{{identifier}}'
+          scope: entity.name.class.chai
+        - include: comments
+
+  class-body:
+    - meta_scope: meta.class.chai meta.block.chai
+    - match: \b(auto|var|fun|def)\b
+      scope: storage.type.chai
+    - include: comments
+    - match: '\}'
+      scope: punctuation.definition.block.chai
+      pop: true
+    - include: method-declaration
+
+  keywords:
+    - match: \bthrow\b
+      scope: keyword.control.trycatch.chai
+    - match: \b(break|continue)\b
+      scope: keyword.control.loop.chai
+    - match: \b(this)\b(?:\s*(\*))?
+      scope: keyword.language.chai
+    - match: \b(return)\b
+      scope: keyword.control.flow.chai
+    - match: \b(auto|var|attr|fun|global)\b
+      scope: storage.type.chai
+
+  constants:
+    - match: \btrue\b
+      scope: constant.language.boolean.true.chai
+    - match: \bfalse\b
+      scope: constant.language.boolean.false.chai
+
+  context-values:
+     - match: \b__FILE__|__LINE__|__CLASS__|__FUNC__\b
+       scope: support.constant.chai
+
+  named-function:
+    - match: '(?={{func_lookahead}}(\s*\*)?\s+{{identifier}})'
+      push: function-declaration
+
+  function-declaration-identifiers:
+    - match: '(?={{identifier}}\s*\.)'
+      push:
+        - include: language-identifiers
+        - match: '{{identifier}}'
+          scope: support.class.chai
+        - match: '\.'
+          scope: punctuation.accessor.chai
+          pop: true
+    - include: function-declaration-final-identifier
+
+  function-declaration-final-identifier:
+    - match: '(?={{identifier}}\s*(=)\s*)'
+      push:
+        - match: '{{identifier}}'
+          scope: meta.property.object.chai entity.name.function.chai
+        - match: '\s*(=)\s*'
+          captures:
+            1: keyword.operator.assignment.chai
+          pop: true
+
+  function-declaration-single-identifier:
+    - match: '\s*(=)\s*'
+      captures:
+        1: keyword.operator.assignment.chai
+    - match: '(?={{identifier}})'
+      push:
+        - match: '{{identifier}}'
+          scope: variable.other.readwrite.chai entity.name.function.chai
+        - match: (?=.)
+          pop: true
+
+  either-function-declaration:
+    - match: '(?={{func_lookahead}})'
+      push: function-declaration
+
+  function-declaration:
+    - include: comments
+    - match: '\b(def)\b\s*'
+      scope: meta.function.declaration.chai
+      captures:
+        1: storage.type.chai
+    - match: \b(fun)\b(\*)?\s*
+      scope: meta.function.declaration.chai
+      captures:
+        1: storage.type.function.chai
+    - match: '{{identifier}}'
+      scope: meta.function.declaration.chai entity.name.function.chai
+    - include: function-declaration-parameters
+    - match: '(?=\s*\{)'
+      set: function-block
+
+  function-block:
+    - meta_scope: meta.block.chai
+    - match: '\}'
+      scope: punctuation.definition.block.chai
+      pop: true
+    - match: '\{'
+      scope: punctuation.definition.block.chai
+      push:
+        - match: '(?=\})'
+          pop: true
+        - include: statements
+
+  function-declaration-parameters:
+    - match: \(
+      scope: punctuation.definition.parameters.begin.chai
+      push:
+        - meta_scope: meta.function.declaration.chai
+        - match: \)
+          scope: punctuation.definition.parameters.end.chai
+          pop: true
+        # Destructuring
+        - match: \{
+          scope: punctuation.definition.block.begin.chai
+          push:
+            - meta_scope: meta.block.chai
+            - match: \}
+              scope: punctuation.definition.block.end.chai
+              pop: true
+            - match: '{{identifier}}'
+              scope: variable.parameter.function.chai
+            - match: ','
+              scope: punctuation.separator.parameter.function.chai
+            - match: '='
+              scope: keyword.operator.assignment.chai
+              push:
+                - meta_scope: meta.parameter.optional.chai
+                - match: "(?=[,)}])"
+                  pop: true
+                - include: expressions
+        - match: \.\.\.
+          scope: keyword.operator.spread.chai
+        - match: '{{identifier}}'
+          scope: variable.parameter.function.chai
+        - match: ','
+          scope: punctuation.separator.parameter.function.chai
+        - match: '='
+          scope: keyword.operator.assignment.chai
+          push:
+            - meta_scope: meta.parameter.optional.chai
+            - match: "(?=[,)])"
+              pop: true
+            - include: expressions
+        - include: comments
+
+  method-declaration:
+    - match: '(\[)({{identifier}}(?:\.{{identifier}}|\.)*)?(\])?\s*(?=$|\()'
+      scope: meta.function.declaration.chai
+      captures:
+        1: punctuation.definition.symbol.begin.chai
+        2: entity.name.function.chai
+        3: punctuation.definition.symbol.end.chai
+      push:
+        - include: function-declaration-parameters
+        - match: '\{'
+          scope: punctuation.definition.block.chai
+          push:
+            - meta_scope: meta.block.chai
+            - match: '\}'
+              scope: punctuation.definition.block.chai
+              pop: true
+            - include: statements
+        - include: comments
+        - match: '(?=\S)'
+          pop: true
+    - match: '({{identifier}})\s*'
+      scope: meta.function.declaration.chai
+      captures:
+        1: entity.name.function.chai
+      push:
+        - include: function-declaration-parameters
+        - match: '\{'
+          scope: punctuation.definition.block.chai
+          push:
+            - meta_scope: meta.block.chai
+            - match: '\}'
+              scope: punctuation.definition.block.chai
+              pop: true
+            - include: statements
+        - include: comments
+        - match: '(?=\S)'
+          pop: true
+
+  brackets:
+    - include: round-brackets
+    - include: square-brackets
+
+  round-brackets:
+    - match: \(
+      scope: punctuation.definition.group.chai
+      push:
+        - meta_scope: meta.group.chai
+        - match: \)
+          scope: punctuation.definition.group.chai
+          set: after-identifier
+        - include: expressions
+    - match: \)
+      scope: invalid.illegal.stray-bracket-end.chai
+
+  square-brackets:
+    - match: '\['
+      scope: punctuation.definition.brackets.chai
+      push:
+        - meta_scope: meta.brackets.chai
+        - match: '\]'
+          scope: punctuation.definition.brackets.chai
+          set: after-identifier
+        - include: expressions
+
+  literal-number:
+    - match: '\b((0(x|X)[0-9a-fA-F]*(\.[0-9a-fA-F]+p-?\d+)?)|(([0-9]+\.?[0-9]*)|(\.[0-9]+))((e|E)(\+|-)?[0-9]+)?)(L|l|UL|ul|u|U|F|f|ll|LL|ull|ULL)?\b'
+      scope: constant.numeric.chai
+      push: after-identifier
+
+  literal-call:
+    - match: (\$)(?=\s*\()
+      scope: variable.function.chai
+      push:
+        - meta_scope: meta.function-call.chai
+        - include: function-call-params
+    - match: \b(print|is_type|puts|eval|to_string)\b(?=\()
+      scope: support.function.chai
+      push:
+        - meta_scope: meta.function-call.chai
+        - include: function-call-params
+    - match: '({{identifier}})(?=\s*\()'
+      scope: variable.function.chai
+      push:
+        - meta_scope: meta.function-call.chai
+        - include: function-call-params
+    - match: '(?={{identifier}}\s*\.\s*{{identifier}}\s*\()'
+      push:
+        - match: '(?={{identifier}}\s*\.)'
+          push:
+            - include: language-identifiers
+            - match: '{{identifier}}'
+              scope: variable.other.object.chai
+            - match: \.
+              scope: punctuation.accessor.chai
+              pop: true
+        - match: \.
+          scope: punctuation.accessor.chai
+        - include: method-call
+        - match: '(?=[^ ])'
+          pop: true
+
+  method-call:
+    - match: 'get_arity|for_each|get_contained_functions|set_explicit(?=\()'
+      scope: support.function.chai
+      push:
+        - meta_scope: meta.function-call.method.chai
+        - include: function-call-params
+    - match: '({{identifier}})\s*(?=\()'
+      scope: variable.function.chai
+      push:
+        - meta_scope: meta.function-call.method.chai
+        - include: function-call-params
+
+  function-call-params:
+    - match: '\)'
+      scope: meta.group.chai punctuation.definition.group.chai
+      set: after-identifier
+    - match: '\('
+      scope: punctuation.definition.group.chai
+      push:
+        - meta_scope: meta.group.chai
+        - match: '(?=\))'
+          set: after-identifier
+        # Consume comma plus any whitespace to prevent whitespace from
+        # getting meta scopes when they don't really apply
+        - match: '(,)\s+'
+          captures:
+            1: punctuation.separator.comma.chai
+        - include: expressions
+
+  object-property:
+    - match: '{{identifier}}'
+      scope: meta.property.object.chai
+    - match: '(?=.|\n)'
+      set: after-identifier
