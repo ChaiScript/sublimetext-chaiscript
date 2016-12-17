@@ -1,12 +1,13 @@
 %YAML 1.2
 ---
-# Derived from the C++/JavaScript package of Sublime Text 3
+# Derived from the C++/JavaScript packages of Sublime Text 3
 name: ChaiScript
 file_extensions:
   - chai
 first_line_match: ^#!/.*\b(chai)$\n?
 scope: source.chai
 variables:
+  builtin_func: 'back|bind|bob_back|call_exists|collate|concat|drop_while|drop|dump_system|Dynamic_Object|empty|eval|even|filter|foldl|for_each|front|generate_range|get_arity|get_contained_functions|is_type|join|max|method_missing|min|pop_front|print|product|puts|reduce|retro|reverse|set_explicit|set_explicit|size|sum|take_while|take|to_string|zip_with|zip'
   identifier: '\b[[:alpha:]_][[:alnum:]_]*\b'
   func_lookahead: '\s*\b(fun\s+)?def\b'
 
@@ -411,7 +412,7 @@ contexts:
       push:
         - meta_scope: meta.function-call.chai
         - include: function-call-params
-    - match: \b(print|is_type|puts|eval|to_string)\b(?=\()
+    - match: \b({{builtin_func}})\b(?=\()
       scope: support.function.chai
       push:
         - meta_scope: meta.function-call.chai
@@ -438,7 +439,7 @@ contexts:
           pop: true
 
   method-call:
-    - match: 'get_arity|for_each|get_contained_functions|set_explicit(?=\()'
+    - match: '{{builtin_func}}(?=\()'
       scope: support.function.chai
       push:
         - meta_scope: meta.function-call.method.chai

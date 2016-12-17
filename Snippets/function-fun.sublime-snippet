@@ -1,0 +1,6 @@
+<snippet>
+	<content><![CDATA[fun($1) {${0:$TM_SELECTED_TEXT}}]]></content>
+	<tabTrigger>fun</tabTrigger>
+	<scope>source.chai</scope>
+	<description>Anonymous Function fun</description>
+</snippet>
