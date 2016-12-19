@@ -179,7 +179,7 @@ print(obj.getMoreStuff(10))
 // TODO: attribute definition
 attr MyType::value;
 // <-  storage.type.chai
-//   ^^^^^^  meta.function.declaration.chai entity.name.function.chai
+
 def MyType::MyType() { this.value = "a"; }
 //  ^^^^^^  meta.function.declaration.chai entity.name.function.chai
 def MyType::get_value() { "Value Is: " + this.value; }
